@@ -1,129 +1,204 @@
-# Tribara
+# 🎯 Tribara
 
-Application de présélection de candidats. Le recruteur décrit le profil qu'il
-cherche en langage naturel ; l'application en extrait des mots-clés avec Claude,
-laisse le recruteur les ajuster, puis note chaque CV de la base par rapport au
-poste et affiche les candidats classés.
+> **Trier 300 candidatures en quelques minutes, sans passer à côté des bons profils.**
+> Le recruteur décrit le poste en langage naturel, valide les mots-clés extraits,
+> et chaque CV est noté avec une justification lisible — pas un score opaque.
 
-Projet de fin d'études, repris et modernisé : la couche IA, initialement servie
-par un backend Python externe, est désormais intégrée à Next.js et utilise
-l'API Anthropic (Claude).
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Claude](https://img.shields.io/badge/Claude-Opus%204.8-D97757?logo=anthropic)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.4-06B6D4?logo=tailwindcss)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## Fonctionnement
+Projet de fin d'études — **ECE Paris**.
 
-L'application se parcourt en trois étapes :
+---
 
-1. **Création** — le recruteur décrit le poste (texte libre, métier, secteur,
-   localisation) ou dépose une fiche de poste en PDF/Word, dont le texte est
-   extrait dans le navigateur. `POST /api/generate-keywords` envoie le tout à
-   Claude, qui renvoie des mots-clés répartis en trois catégories :
-   indispensables, appréciés et différenciants.
-2. **Validation** — les mots-clés s'affichent en trois colonnes. Le recruteur
-   les déplace d'une catégorie à l'autre, en ajoute ou en supprime par
-   glisser-déposer. Rien n'est envoyé au modèle à cette étape.
-3. **Résultat** — `POST /api/score-resume` est appelée une fois par candidat.
-   Claude renvoie un score sur 100, un nombre d'années d'expérience pertinentes
-   et une justification. Les trois premiers candidats sont analysés d'abord pour
-   afficher des résultats rapidement, le reste arrive progressivement. Des
-   filtres avancés et un tri permettent ensuite d'affiner la liste.
+## Le problème
+
+Un chargé de recrutement passe **80 % de son temps à trier des candidatures**. Sur une
+offre classique, c'est **~300 candidatures reçues, dont 70 % hors sujet** — jusqu'à
+15 heures par semaine sur une tâche à faible valeur ajoutée.
+
+Les ATS du marché (Applicant Tracking Systems) savent publier les offres et centraliser
+les candidats, mais leur tri automatique déçoit. Nous avons interrogé **20 acteurs du
+recrutement** :
+
+| Constat | Part |
+|---|---|
+| Trouvent leurs outils insuffisants face à leurs besoins réels | **70 %** |
+| Estiment le scoring automatique **peu fiable** | **80 %** |
+
+Trois priorités ressortent : **rapidité, pertinence, simplicité**.
+
+Le défaut commun des outils existants : ils **repèrent des mots-clés sans lire le
+contexte**. Un CV où « Python » apparaît dans la liste de loisirs pèse autant qu'un CV
+où il structure trois ans d'expérience. Ni l'ordre, ni la récence, ni l'importance
+relative des informations ne sont pris en compte — alors les recruteurs repassent
+derrière l'outil, et le gain de temps disparaît.
+
+## L'approche
+
+Plutôt qu'un score opaque calculé sur des fréquences de mots, Tribara fait lire le CV et
+l'offre par un LLM, et lui demande **une note *plus* une justification** — que le
+recruteur peut contredire.
+
+```mermaid
+flowchart TD
+    A["Offre d'emploi<br/>texte libre · PDF · Word"] --> B["Extraction des critères<br/>Claude · sortie JSON"]
+    B --> C["Mots-clés hiérarchisés<br/>must have · nice to have · différenciants"]
+    C --> D{"Validation<br/>par le recruteur"}
+    D -->|glisser-déposer| C
+    D --> E["Notation des CV<br/>Claude · 1 appel par candidat"]
+    F["Base de CV<br/>CV anonymisés"] --> E
+    E --> G["Score /100 + années pertinentes<br/>+ justification écrite"]
+    G --> H["Filtres avancés · tri · fiche candidat"]
+
+    style B fill:#D97757,color:#fff
+    style D fill:#2563eb,color:#fff
+    style E fill:#D97757,color:#fff
+    style G fill:#059669,color:#fff
+```
+
+**L'étape de validation est le cœur du produit.** Aucun outil ne devine parfaitement ce
+qu'un recruteur a en tête : Tribara propose une hiérarchisation, le recruteur la corrige
+en dix secondes, et la notation part sur *ses* critères plutôt que sur une extraction
+approximative.
+
+## Ce qui tourne aujourd'hui
+
+- ✅ **Parcours complet en trois étapes** — description du poste → validation des
+  mots-clés → résultats classés
+- ✅ **Extraction des critères** depuis du texte libre, un métier, un secteur, une
+  localisation, ou une fiche de poste déposée en **PDF / Word** (texte extrait dans le
+  navigateur, sans upload)
+- ✅ **Hiérarchisation en trois niveaux** — indispensables, appréciés, différenciants,
+  réorganisables par **glisser-déposer** (dnd-kit), avec ajout et suppression
+- ✅ **Notation par candidat** — score /100, années d'expérience **pertinentes pour ce
+  poste** (et non le total de carrière), et justification factuelle en français
+- ✅ **Résultats progressifs** — les 3 premiers profils s'affichent d'abord, le reste
+  arrive au fil de l'eau plutôt que derrière un écran de chargement
+- ✅ **Filtres avancés** — conditions combinables sur compétences, expérience, formation
+  et localisation, plus le tri par score
+- ✅ **Anonymisation côté serveur** — le modèle ne reçoit jamais nom, email, téléphone
+  ni LinkedIn
+
+## Le parti pris sur les biais
+
+Le recrutement assisté par IA a un problème documenté de biais algorithmique. Deux
+garde-fous sont implémentés :
+
+**Le modèle ne voit pas l'identité du candidat.** `app/api/score-resume/route.ts` retire
+nom, email, téléphone, LinkedIn et photo avant l'appel. Il ne reste que l'intitulé, le
+résumé, la localisation, les formations, les expériences et les compétences — le prompt
+système interdit en plus tout commentaire sur l'identité, l'âge, le genre ou l'origine
+supposés.
+
+**Chaque score est justifié.** Une note sans explication ne peut pas être contestée. Ici
+chaque candidat arrive avec deux ou trois phrases disant ce qui correspond et ce qui
+manque, adossées au contenu du CV — le recruteur garde la décision.
 
 ## Stack
 
-- **Next.js 15** (App Router) et **React 18** en TypeScript
-- **Tailwind CSS** et composants **shadcn/ui** (Radix)
-- **@anthropic-ai/sdk** — modèle `claude-opus-4-8`, sorties structurées JSON
-- **dnd-kit** pour le glisser-déposer, **framer-motion** pour les transitions
-- **pdfjs-dist** et **mammoth** pour lire les fiches de poste PDF et Word
+| | |
+|---|---|
+| **Interface** | Next.js 15 (App Router), React 18, TypeScript, Tailwind CSS, shadcn/ui (Radix) |
+| **IA** | `@anthropic-ai/sdk` — Claude Opus 4.8, sorties structurées JSON schema |
+| **Interactions** | dnd-kit (glisser-déposer), framer-motion (transitions) |
+| **Lecture de fichiers** | pdfjs-dist et mammoth, exécutés côté navigateur |
+| **Parsing de CV** *(hors-ligne)* | Python, Tesseract OCR, pdf2image, OpenCV |
 
-## Prérequis
+Toute la logique serveur tient dans deux route handlers Next.js : il n'y a ni base de
+données, ni backend séparé à déployer.
 
-- Node.js 18.18 ou plus
-- Une clé API Anthropic ([console.anthropic.com](https://console.anthropic.com/settings/keys))
+## Démarrage
 
-## Installation
-
-```sh
+```bash
 git clone https://github.com/Aminebousmah/Tribara.git
 cd Tribara
 npm install
+
+cp .env.example .env.local     # puis renseigner ANTHROPIC_API_KEY
+npm run dev                    # http://localhost:3000/search
 ```
 
-Copiez `.env.example` en `.env.local` et renseignez votre clé :
+Une clé API Anthropic est nécessaire ([console.anthropic.com](https://console.anthropic.com/settings/keys)).
+Elle n'est lue que dans `app/api/**`, côté serveur, et n'est jamais exposée au navigateur.
 
-```sh
-cp .env.example .env.local
+```bash
+npm run build      # build de production
+npx tsc --noEmit   # typecheck
+npm run lint       # ESLint
 ```
-
-```dotenv
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-Lancez le serveur de développement :
-
-```sh
-npm run dev
-```
-
-L'application est disponible sur <http://localhost:3000/search>.
-
-> La clé API n'est lue que dans les route handlers (`app/api/**`), côté serveur.
-> Elle n'est jamais exposée au navigateur.
-
-## Scripts
-
-| Commande        | Rôle                                     |
-| --------------- | ---------------------------------------- |
-| `npm run dev`   | Serveur de développement                 |
-| `npm run build` | Build de production                      |
-| `npm start`     | Sert le build de production              |
-| `npm run lint`  | ESLint (configuration Next.js)           |
 
 ## Structure
 
 ```
 app/
-  api/generate-keywords/route.ts  Extraction des mots-clés du poste (Claude)
-  api/score-resume/route.ts       Notation d'un CV face au poste (Claude)
-  search/page.tsx                 Parcours en trois étapes
-components/
-  search/                         Composants du parcours (étapes, filtres, résultats)
-  ui/                             Composants shadcn/ui
+  api/generate-keywords/   offre d'emploi → mots-clés hiérarchisés
+  api/score-resume/        CV + poste → score, années pertinentes, justification
+  search/page.tsx          orchestration des trois étapes
+components/search/         StepContent · StepValidation · StepResults · filtres
 lib/
-  anthropic.ts                    Client Anthropic et helper de sortie JSON
-  api.ts                          Wrappers fetch côté client vers /api
+  anthropic.ts             client Claude, helper de sortie JSON, mapping d'erreurs
+  api.ts                   wrappers fetch côté client
 public/
-  candidates.json                 Jeu de CV de démonstration (fictif)
-  jobs.json, cities.json, industries.json  Listes pour l'autocomplétion
-  types.ts                        Types partagés
-scripts/
-  parse_resume.py                 Parseur de CV OCR hors-ligne (voir ci-dessous)
-utils/
-  fileProcessor.tsx               Extraction de texte PDF/Word dans le navigateur
+  candidates.json          11 CV de démonstration (identités fictives)
+  types.ts                 ParsedJob, ResumeScore, Candidate, filtres
+scripts/parse_resume.py    parseur de CV OCR hors-ligne (a servi à bâtir le jeu de données)
 ```
 
-## Jeu de données
+## Feuille de route
 
-`public/candidates.json` contient 11 profils de démonstration. **Les identités
-(noms, emails, téléphones, profils LinkedIn) sont entièrement fictives** ; seules
-les compétences et les parcours ont été conservés pour rendre la démo réaliste.
-Aucune donnée personnelle réelle n'est versionnée dans ce dépôt.
+- [x] Extraction des critères depuis une offre d'emploi
+- [x] Validation et hiérarchisation des mots-clés par le recruteur
+- [x] Notation des CV avec justification, filtres et tri
+- [x] Migration de la couche IA vers l'API Anthropic (backend Python retiré)
+- [ ] Intégration ATS via API et webhook — le candidat est repositionné automatiquement
+      dans le pipeline à la réception du score
+- [ ] Connecteur **Flatchr**, puis les autres ATS du marché
+- [ ] Traitement en continu : chaque nouvelle candidature évaluée à l'arrivée
+- [ ] Détection des soft skills et correspondance avec les valeurs de l'entreprise
+- [ ] Conformité RGPD de bout en bout et hébergement européen
 
-Les CV envoyés à Claude pour notation sont en plus dépouillés de leurs champs de
-contact côté serveur : le modèle ne voit que l'intitulé, le résumé, la
-localisation, les formations, les expériences et les compétences.
+## Le marché
 
-## Parseur de CV (optionnel)
+Le recrutement français pèse **43 Md€**, dont **4,2 Md€** de logiciels et services RH
+(Xerfi, Apec). Les ATS existants vont de **50 €/mois** (Flatchr, entrée de gamme) à
+**10 000 USD/an** (SmartRecruiters), et le tri fiable reste le maillon faible chez tous.
 
-`scripts/parse_resume.py` est l'outil hors-ligne qui a servi à construire le jeu
-de données. Il n'est pas utilisé par l'application. Il nécessite Tesseract OCR et
-Poppler installés sur la machine :
+L'enjeu dépasse le temps gagné : **36 % de turn-over la première année**, et **30 % des
+employés partent dans les six premiers mois** — un mauvais tri coûte bien plus cher que
+les heures qu'il fait perdre.
 
-```sh
-pip install -r scripts/requirements.txt
-python scripts/parse_resume.py CV/ --anonymize --output out/contacts.json
-```
+Cibles : startups, PME, cabinets de recrutement, grands comptes.
 
-Les dossiers `CV/` et `out/` sont ignorés par Git.
+## L'équipe
+
+Projet de fin d'études mené à sept — ECE Paris.
+
+| | |
+|---|---|
+| **Marie Leclercq** | Gestion de projet · Analyse de données · Machine learning |
+| **Ilian Mouhoubi-Duhamel** | Machine learning · NLP |
+| **Hugo Scatena** | API · Communication · Gestion de projet |
+| **Amine Bousmah** | Bases de données · Parsing |
+| **Valentin Soty** | Gestion de projet · Bases de données |
+| **Alexandre Blion** | Développement logiciel · UI/UX |
+| **Matéo Cocq** | Analyse de données · UI/UX |
+
+## Notes
+
+**Les données de démonstration sont fictives.** Les 11 profils de `public/candidates.json`
+ont des noms, emails, téléphones et profils LinkedIn inventés ; seuls compétences et
+parcours ont été conservés pour rendre la démo réaliste. Aucune donnée personnelle réelle
+n'est versionnée, et les dossiers `CV/` et `out/` sont ignorés par Git.
+
+**Tribara assiste le tri, il ne décide pas.** Les scores servent à prioriser une pile de
+CV, pas à écarter automatiquement un candidat.
+
+Sources chiffrées : PwC (2022), Harvard Business Review (2021), Verified Market Reports
+(2024), Xerfi, Apec, et notre étude terrain auprès de 20 acteurs du recrutement.
 
 ## Licence
 
