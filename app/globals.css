@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* White background for light theme */
+    --foreground: 0 0% 3.9%; /* Black text for readability */
+    --card: 0 0% 100%; /* Card matches background */
+    --card-foreground: 0 0% 3.9%; /* Text for cards */
+    --popover: 0 0% 100%; /* Same as background for popovers */
+    --popover-foreground: 0 0% 3.9%; /* Popover text */
+    --primary: 0 0% 9%; /* Your primary color */
+    --primary-foreground: 0 0% 98%; /* Contrast for primary */
+    --secondary: 0 0% 96.1%; /* Secondary color */
+    --secondary-foreground: 0 0% 9%; /* Contrast for secondary */
+    --muted: 0 0% 96.1%; /* Muted neutral */
+    --muted-foreground: 0 0% 45.1%; /* Slightly darker neutral for text */
+    --accent: 0 0% 96.1%; /* Accent color */
+    --accent-foreground: 0 0% 9%; /* Contrast for accent */
+    --destructive: 0 84.2% 60.2%; /* Destructive actions (a red tone) */
+    --destructive-foreground: 0 0% 98%; /* Contrast for destructive */
+    --border: 0 80% 89.8%; /* Light border color */
+    --input: 0 0% 89.8%; /* Light input background */
+    --ring: 0 0% 3.9%; /* Use primary color for focus ring */
+    --chart-1: 12 76% 61%; /* Chart 1: Primary */
+    --chart-2: 173 58% 39%; /* Chart 2: Secondary */
+    --chart-3: 197 37% 24%; /* Chart 3: Accent */
+    --chart-4: 43 74% 66%; /* Chart 4 */
+    --chart-5: 27 87% 67%; /* Chart 5 */
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  /* Removed dark theme definitions as they are not needed for a light-only theme */
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 80% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border); /* Apply border color from variables */
+  }
+  body {
+    background-color: var(--background); /* Set body background */
+    color: var(--foreground); /* Set text color */
+  }
+}
+
+@layer utilities {
+  .bg-background {
+    background-color: var(--background);
+  }
+  .text-foreground {
+    color: var(--foreground);
+  }
+  .border-border {
+    border-color: var(--border);
+  }
+  .bg-card {
+    background-color: var(--card);
+  }
+  .text-card-foreground {
+    color: var(--card-foreground);
+  }
+  .bg-popover {
+    background-color: var(--popover);
+  }
+  .text-popover-foreground {
+    color: var(--popover-foreground);
+  }
+  .bg-primary {
+    background-color: var(--primary);
+  }
+  .text-primary-foreground {
+    color: var(--primary-foreground);
+  }
+  .bg-secondary {
+    background-color: var(--secondary);
+  }
+  .text-secondary-foreground {
+    color: var(--secondary-foreground);
+  }
+  .bg-muted {
+    background-color: var(--muted);
+  }
+  .text-muted-foreground {
+    color: var(--muted-foreground);
+  }
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  .text-accent-foreground {
+    color: var(--accent-foreground);
+  }
+  .bg-destructive {
+    background-color: var(--destructive);
+  }
+  .text-destructive-foreground {
+    color: var(--destructive-foreground);
+  }
+  .ring-primary {
+    box-shadow: 0 0 0 3px var(--ring);
+  }
+}
+
+@keyframes fillAnimation {
+  0% {
+    stroke-dasharray: 0, 100;
+  }
+  100% {
+    stroke-dasharray: var(--dash-array, 0), 100;
+  }
+}
+
+.circular-progress {
+  animation: fillAnimation 1.5s ease-out forwards;
+  stroke-dasharray: 0, 100; /* Valeur initiale */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

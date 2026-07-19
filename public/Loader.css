@@ -1,0 +1,132 @@
+/* Loader styles scoped to .loader-container */
+.loader-container {
+  position: relative;
+  width: 60px;  /* Increase the size of the loader container */
+  height: 60px; /* Increase the size of the loader container */
+  animation: rotation 1s infinite;
+}
+
+.loader-container .shape {
+  position: absolute;
+  width: 22px; /* Increase the size of the shapes */
+  height: 22px; /* Increase the size of the shapes */
+  border-radius: 2px;
+}
+
+.loader-container .shape.shape-1 {
+  left: 0;
+  background-color: #4285F4;
+}
+
+.loader-container .shape.shape-2 {
+  right: 0;
+  background-color: #34A853;
+}
+
+.loader-container .shape.shape-3 {
+  bottom: 0;
+  background-color: #FBBC05;
+}
+
+.loader-container .shape.shape-4 {
+  bottom: 0;
+  right: 0;
+  background-color: #EA4335;
+}
+
+.loader-container .shape-1 {
+  animation: shape1 2s linear infinite;
+}
+
+.loader-container .shape-2 {
+  animation: shape2 2s linear infinite;
+}
+
+.loader-container .shape-3 {
+  animation: shape3 2s linear infinite;
+}
+
+.loader-container .shape-4 {
+  animation: shape4 2s linear infinite;
+}
+
+/* Rotation animation */
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Shape animations */
+@keyframes shape1 {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(0, 36px);  /* Adjust movement to match size */
+  }
+  50% {
+    transform: translate(36px, 36px); /* Adjust movement to match size */
+  }
+  75% {
+    transform: translate(36px, 0);
+  }
+}
+
+@keyframes shape2 {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-36px, 0); /* Adjust movement to match size */
+  }
+  50% {
+    transform: translate(-36px, 36px); /* Adjust movement to match size */
+  }
+  75% {
+    transform: translate(0, 36px);
+  }
+}
+
+@keyframes shape3 {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(36px, 0); /* Adjust movement to match size */
+  }
+  50% {
+    transform: translate(36px, -36px); /* Adjust movement to match size */
+  }
+  75% {
+    transform: translate(0, -36px);
+  }
+}
+
+@keyframes shape4 {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(0, -36px); /* Adjust movement to match size */
+  }
+  50% {
+    transform: translate(-36px, -36px); /* Adjust movement to match size */
+  }
+  75% {
+    transform: translate(-36px, 0);
+  }
+}
+
+.blinking-cursor {
+    animation: blink 1s step-start infinite;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
